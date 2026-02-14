@@ -1,7 +1,7 @@
 # 开发报告：钢琴演奏模块 (Piano Player)
 
 > 模块开发时间：2025-02-15
-> 开发者：Claude Code + User
+> 开发者：Claude Code + Pectics
 
 ---
 
