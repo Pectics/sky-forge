@@ -27,9 +27,6 @@ class Player:
         self._on_progress: Optional[Callable[[int, int], None]] = None
         self._on_complete: Optional[Callable[[], None]] = None
 
-        # 延迟补偿 (秒) - 用于补偿游戏内乐器响应延迟
-        self.delay_compensation = 0.0
-
     def load(self, sheet: Sheet):
         """加载乐谱"""
         self.sheet = sheet
@@ -130,8 +127,6 @@ class Player:
             # 等待下一个音符 (精确计时)
             if idx < total - 1:
                 target_interval = (sorted_times[idx + 1] - t) / 1000.0 * bpm_factor
-                # 添加延迟补偿
-                target_interval += self.delay_compensation
                 elapsed = time.perf_counter() - start_time
                 remaining = target_interval - elapsed
                 if remaining > 0:
