@@ -67,8 +67,85 @@ class KeyboardController:
     def __init__(self):
         self.hwnd: Optional[int] = None
 
-    def find_game_window(self) -> Optional[int]:
-        """查找光遇游戏窗口"""
+    @staticmethod
+    def list_windows() -> list[dict]:
+        """列出所有可见窗口
+
+        Returns:
+            窗口列表，每项包含 hwnd, title, process
+        """
+        windows = []
+
+        def enum_callback(hwnd, _):
+            if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
+                title = win32gui.GetWindowText(hwnd)
+                if not title:
+                    return True
+                _, pid = win32process.GetWindowThreadProcessId(hwnd)
+                process_name = ""
+                try:
+                    proc = psutil.Process(pid)
+                    process_name = proc.name()
+                except Exception:
+                    pass
+                windows.append({
+                    'hwnd': hwnd,
+                    'title': title,
+                    'process': process_name
+                })
+            return True
+
+        win32gui.EnumWindows(enum_callback, None)
+        return windows
+
+    def select_window(self, prompt: str = "请选择目标窗口") -> Optional[int]:
+        """交互式选择窗口
+
+        Args:
+            prompt: 提示信息
+
+        Returns:
+            选中的窗口句柄
+        """
+        windows = self.list_windows()
+
+        if not windows:
+            print("未找到任何可见窗口")
+            return None
+
+        print(f"\n{prompt}")
+        print("-" * 60)
+        for i, w in enumerate(windows):
+            proc = f" [{w['process']}]" if w['process'] else ""
+            # 截断过长的标题
+            title = w['title'][:50] + "..." if len(w['title']) > 50 else w['title']
+            print(f"  {i + 1:3d}. {title}{proc}")
+        print("-" * 60)
+
+        while True:
+            try:
+                choice = input("输入序号选择窗口 (直接回车取消): ").strip()
+                if not choice:
+                    return None
+                idx = int(choice) - 1
+                if 0 <= idx < len(windows):
+                    self.hwnd = windows[idx]['hwnd']
+                    print(f"已选择: {windows[idx]['title']}")
+                    return self.hwnd
+                else:
+                    print(f"序号超出范围 (1-{len(windows)})")
+            except ValueError:
+                print("请输入有效的数字")
+
+    def find_game_window(self, interactive: bool = True) -> Optional[int]:
+        """查找光遇游戏窗口
+
+        Args:
+            interactive: 如果自动查找失败，是否启用交互式选择
+
+        Returns:
+            窗口句柄
+        """
         result = {}
 
         def enum_callback(hwnd, _):
@@ -81,14 +158,26 @@ class KeyboardController:
                     # 匹配进程名或窗口标题
                     if 'sky' in name or ('光' in title and '遇' in title):
                         result['hwnd'] = hwnd
+                        result['title'] = title
                 except Exception:
                     if '光' in title and '遇' in title:
                         result['hwnd'] = hwnd
+                        result['title'] = title
             return True
 
         win32gui.EnumWindows(enum_callback, None)
-        self.hwnd = result.get('hwnd')
-        return self.hwnd
+
+        if result.get('hwnd'):
+            self.hwnd = result['hwnd']
+            print(f"自动找到窗口: {result.get('title', self.hwnd)}")
+            return self.hwnd
+
+        # 自动查找失败
+        if interactive:
+            print("未自动找到光遇窗口")
+            return self.select_window("请手动选择游戏窗口")
+
+        return None
 
     def set_window(self, hwnd: int):
         """手动设置目标窗口"""
