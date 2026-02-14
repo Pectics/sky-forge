@@ -80,8 +80,9 @@ def load_sheet(file_path: str | Path) -> Sheet:
 
 
 def scan_sheets(directory: str | Path) -> list[Path]:
-    """扫描目录下的所有乐谱文件"""
+    """扫描目录及子目录下的所有乐谱文件 (.json)"""
     dir_path = Path(directory)
     if not dir_path.exists():
         return []
-    return list(dir_path.glob('*.json'))
+    # 递归扫描所有子目录
+    return list(dir_path.rglob('*.json'))
