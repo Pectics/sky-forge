@@ -11,7 +11,7 @@ from typing import Callable, Optional
 import aiohttp
 
 import blivedm
-import blivedm.models as blivedm_models
+import blivedm.models.web as web_models
 
 
 @dataclass
@@ -93,7 +93,7 @@ class DanmakuClient:
         if self._client:
             await self._client.join()
 
-    def _on_message(self, client: blivedm.BLiveClient, message: blivedm_models.DanmakuMessage):
+    def _on_message(self, client: blivedm.BLiveClient, message: web_models.DanmakuMessage):
         """处理弹幕消息"""
         if self._on_danmaku:
             msg = DanmakuMessage(
@@ -111,6 +111,6 @@ class _Handler(blivedm.BaseHandler):
     def __init__(self, callback: Callable):
         self._callback = callback
 
-    def _on_danmaku(self, client: blivedm.BLiveClient, message: blivedm_models.DanmakuMessage):
+    def _on_danmaku(self, client: blivedm.BLiveClient, message: web_models.DanmakuMessage):
         """弹幕消息"""
         self._callback(client, message)

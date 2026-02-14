@@ -50,6 +50,9 @@ class RequestHandler:
         Args:
             msg: 弹幕消息
         """
+        # 显示收到的弹幕
+        print(f"[弹幕] {msg.uname}: {msg.msg}")
+
         # 检查是否是点播指令
         for prefix in self.REQUEST_PREFIXES:
             if msg.msg.startswith(prefix):
