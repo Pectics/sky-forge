@@ -23,7 +23,7 @@ class Sheet:
     author: str = ""             # 原曲作者
     transcribed_by: str = ""     # 制谱人
     bpm: int = 120               # 节拍
-    notes: list[Note] = None     # 音符列表
+    notes: Optional[list[Note]] = None  # 音符列表
     duration: int = 0            # 总时长 (毫秒)
 
     def __post_init__(self):

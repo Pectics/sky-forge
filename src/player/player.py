@@ -75,6 +75,9 @@ class Player:
 
     def _play_loop(self):
         """播放循环"""
+        assert self.sheet is not None  # 类型收窄
+        assert self.sheet.notes is not None  # 确保 notes 非空
+
         # 按时间分组音符
         notes_by_time = defaultdict(list)
         for note in self.sheet.notes:
@@ -91,7 +94,6 @@ class Player:
 
         # BPM 调整系数
         bpm_factor = 120 / self.sheet.bpm if self.sheet.bpm else 1.0
-        t0 = sorted_times[0]
 
         for idx in range(self._current_idx, total):
             if self._stop_event.is_set():
