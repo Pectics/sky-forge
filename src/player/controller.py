@@ -74,7 +74,7 @@ class Player:
         self._thread.start()
 
     def _play_loop(self):
-        """播放循环"""
+        """播放循环 - 使用绝对时间计时"""
         assert self.sheet is not None  # 类型收窄
         assert self.sheet.notes is not None  # 确保 notes 非空
 
@@ -95,8 +95,8 @@ class Player:
         # BPM 调整系数 (标准 BPM 为 120)
         bpm_factor = 120 / self.sheet.bpm if self.sheet.bpm else 1.0
 
-        # 使用精确计时
-        KEY_PRESS_DURATION = 0.05  # 按键持续时间 (秒)
+        # 记录歌曲开始时间（绝对时间）
+        song_start_time = time.perf_counter()
 
         for idx in range(self._current_idx, total):
             if self._stop_event.is_set():
@@ -111,26 +111,23 @@ class Player:
             if self._stop_event.is_set():
                 break
 
-            # 记录开始时间
-            start_time = time.perf_counter()
+            # 当前音符的绝对时间点
+            note_time_ms = sorted_times[idx]
+            target_time = song_start_time + note_time_ms / 1000.0 * bpm_factor
 
-            t = sorted_times[idx]
-            keys = notes_by_time[t]
+            # 等待到达目标时间点
+            now = time.perf_counter()
+            wait_time = target_time - now
+            if wait_time > 0:
+                time.sleep(wait_time)
 
             # 播放音符
+            keys = notes_by_time[note_time_ms]
             self.keyboard.press_notes(keys)
 
             # 进度回调
             if self._on_progress:
                 self._on_progress(idx + 1, total)
-
-            # 等待下一个音符 (精确计时)
-            if idx < total - 1:
-                target_interval = (sorted_times[idx + 1] - t) / 1000.0 * bpm_factor
-                elapsed = time.perf_counter() - start_time
-                remaining = target_interval - elapsed
-                if remaining > 0:
-                    time.sleep(remaining)
 
             self._current_idx = idx + 1
 
