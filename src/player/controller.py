@@ -92,8 +92,11 @@ class Player:
                 self._on_complete()
             return
 
-        # BPM 调整系数
+        # BPM 调整系数 (标准 BPM 为 120)
         bpm_factor = 120 / self.sheet.bpm if self.sheet.bpm else 1.0
+
+        # 使用精确计时
+        KEY_PRESS_DURATION = 0.05  # 按键持续时间 (秒)
 
         for idx in range(self._current_idx, total):
             if self._stop_event.is_set():
@@ -108,6 +111,9 @@ class Player:
             if self._stop_event.is_set():
                 break
 
+            # 记录开始时间
+            start_time = time.perf_counter()
+
             t = sorted_times[idx]
             keys = notes_by_time[t]
 
@@ -118,11 +124,13 @@ class Player:
             if self._on_progress:
                 self._on_progress(idx + 1, total)
 
-            # 等待下一个音符
+            # 等待下一个音符 (精确计时)
             if idx < total - 1:
-                interval = (sorted_times[idx + 1] - t) / 1000.0 * bpm_factor
-                if interval > 0:
-                    time.sleep(interval)
+                target_interval = (sorted_times[idx + 1] - t) / 1000.0 * bpm_factor
+                elapsed = time.perf_counter() - start_time
+                remaining = target_interval - elapsed
+                if remaining > 0:
+                    time.sleep(remaining)
 
             self._current_idx = idx + 1
 
