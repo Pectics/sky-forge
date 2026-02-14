@@ -1,0 +1,4 @@
+# Sky-Forge 核心依赖
+pywin32>=305
+keyboard>=0.13.5
+psutil

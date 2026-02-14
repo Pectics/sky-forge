@@ -1,0 +1,16 @@
+[project]
+name = "sky-forge"
+version = "0.1.0"
+description = "Forge your own Sky livestream experience"
+requires-python = ">=3.10"
+dependencies = [
+    "pywin32>=305",
+    "keyboard>=0.13.5",
+]
+
+[project.scripts]
+sky-forge = "src.main:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools"
