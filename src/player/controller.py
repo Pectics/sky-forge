@@ -92,10 +92,8 @@ class Player:
                 self._on_complete()
             return
 
-        # BPM 调整系数 (标准 BPM 为 120)
-        bpm_factor = 120 / self.sheet.bpm if self.sheet.bpm else 1.0
-
         # 记录歌曲开始时间（绝对时间）
+        # 直接使用乐谱中的时间，不做 BPM 调整
         song_start_time = time.perf_counter()
 
         for idx in range(self._current_idx, total):
@@ -111,9 +109,9 @@ class Player:
             if self._stop_event.is_set():
                 break
 
-            # 当前音符的绝对时间点
+            # 当前音符的绝对时间点 (毫秒转秒)
             note_time_ms = sorted_times[idx]
-            target_time = song_start_time + note_time_ms / 1000.0 * bpm_factor
+            target_time = song_start_time + note_time_ms / 1000.0
 
             # 等待到达目标时间点
             now = time.perf_counter()
