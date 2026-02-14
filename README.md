@@ -2,22 +2,32 @@
 
 > Forge your own Sky livestream experience
 
-光遇直播工具集，首个模块：**钢琴自动演奏**
+光遇无人直播工具集 —— 支持观众弹幕点歌的自动钢琴演奏系统
 
-## 功能
+## ✨ 功能特性
 
-- Windows API 键盘模拟 (支持后台演奏)
-- JSON 格式乐谱解析
-- 播放控制 (开始/暂停/停止)
-- 本地曲库管理
+- 🎹 **自动钢琴演奏** - Windows API 后台键盘模拟，无需游戏前台
+- 📡 **直播弹幕接入** - 支持 B 站直播间弹幕实时接收
+- 🎵 **弹幕点歌** - 观众发弹幕即可点播曲目
+- 📚 **海量曲库** - 支持 15000+ 首乐谱，模糊搜索匹配
+- ⏯️ **播放控制** - 支持开始、暂停、停止、跳过
 
-## 安装
+## 📦 安装
 
 ```bash
+# 克隆项目
+git clone https://github.com/your-username/sky-forge.git
+cd sky-forge
+
+# 安装依赖 (建议使用 conda)
+conda create -n sky-forge python=3.12
+conda activate sky-forge
 pip install -r requirements.txt
 ```
 
-## 使用
+## 🚀 使用方法
+
+### 命令行接口
 
 ```bash
 # 列出曲库
@@ -26,15 +36,58 @@ python -m src.main list
 # 播放乐谱 (按序号)
 python -m src.main play 1
 
-# 播放乐谱 (按名称)
+# 播放乐谱 (按名称模糊搜索)
 python -m src.main play 小星星
+
+# 播放乐谱 (指定文件)
+python -m src.main play -f sheets/example.json
+
+# 启动直播间点歌模式
+python -m src.main live <房间号>
+
+# 带登录启动 (获取完整用户名)
+python -m src.main live <房间号> --sessdata <你的SESSDATA>
 ```
 
-## 曲库
+### 弹幕点歌指令
 
-将 JSON 格式的乐谱文件放入 `./sheets/` 目录。
+观众在直播间发送以下指令即可点歌：
 
-乐谱格式：
+| 指令 | 示例 | 说明 |
+|-----|------|------|
+| `点播 曲名` | `点播 小星星` | 添加到播放队列 |
+| `播放 曲名` | `播放 小星星` | 同上 |
+| `队列` | `队列` | 查看当前播放队列 |
+| `跳过` | `跳过` | 跳过当前曲目 |
+
+## ⚠️ 运行要求
+
+- **操作系统**: Windows 10/11
+- **权限**: 必须**以管理员身份运行** (Windows API 限制)
+- **游戏**: 光遇游戏已打开，并进入钢琴界面
+
+## 📁 项目结构
+
+```
+sky-forge/
+├── src/
+│   ├── main.py              # CLI 入口
+│   ├── player/              # 乐谱播放模块
+│   │   ├── controller.py    # 播放控制器
+│   │   ├── keyboard.py      # 键盘模拟
+│   │   └── sheet.py         # 乐谱解析
+│   └── live/                # 直播弹幕模块
+│       ├── client.py        # 弹幕客户端
+│       └── handler.py       # 点播处理
+├── sheets/                  # 乐谱库
+├── reports/                 # 开发报告
+└── CLAUDE.md               # 开发规范
+```
+
+## 🎼 乐谱格式
+
+支持 JSON 格式的乐谱文件：
+
 ```json
 {
   "songName": "歌曲名",
@@ -48,6 +101,22 @@ python -m src.main play 小星星
 }
 ```
 
-## 致谢
+将乐谱文件放入 `./sheets/` 目录即可自动识别。
 
-核心实现参考了 [SkyMusicPlay-for-Windows](https://github.com/windhide/SkyMusicPlay-for-Windows) 项目。
+## 📖 开发报告
+
+| 报告 | 说明 |
+|-----|------|
+| [钢琴演奏模块](reports/DEV_REPORT_Piano_Player.md) | Windows API 键盘模拟 |
+| [B站直播弹幕](reports/DEV_REPORT_Bilibili_Live.md) | blivedm 集成 |
+| [播放时序处理](reports/DEV_REPORT_Playback_Timing.md) | 绝对时间计时 |
+
+## 🙏 致谢
+
+- [SkyMusicPlay-for-Windows](https://github.com/windhide/SkyMusicPlay-for-Windows) - 核心实现参考
+- [blivedm](https://github.com/xfgryujk/blivedm) - B 站直播弹幕库
+- [Sky1984-Sheets-Collection](https://github.com/Ai-Vonie/Sky1984-Sheets-Collection) - 乐谱资源
+
+## 📄 许可证
+
+MIT License
