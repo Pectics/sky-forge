@@ -3,3 +3,6 @@ __pycache__
 # Sheets folder ignore
 sheets/*
 !sheets/example.json
+
+# Claude Code
+.claude/
