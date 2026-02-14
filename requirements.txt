@@ -2,3 +2,7 @@
 pywin32>=305
 keyboard>=0.13.5
 psutil
+
+# 直播弹幕
+aiohttp>=3.7.4
+blivedm>=0.1.1

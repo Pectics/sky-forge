@@ -1,13 +1,15 @@
 """
-Sky-Forge 钢琴演奏 CLI 入口
+Sky-Forge CLI 入口
 """
 
 import argparse
+import asyncio
 import sys
 from pathlib import Path
 
 from src.player import Player
 from src.player.sheet import load_sheet, scan_sheets
+from src.live import DanmakuClient, RequestHandler
 
 
 def get_sheets_dir() -> Path:
@@ -115,6 +117,41 @@ def cmd_play(args):
         player.stop()
 
 
+def cmd_live(args):
+    """启动直播间点播模式"""
+    room_id = args.room_id
+    sessdata = args.sessdata or ""
+    sheets_dir = get_sheets_dir()
+
+    print(f"直播间: {room_id}")
+    print(f"曲库目录: {sheets_dir}")
+    print()
+
+    # 创建播放器和点播处理器
+    player = Player()
+    handler = RequestHandler(player, sheets_dir)
+
+    # 创建弹幕客户端
+    client = DanmakuClient(room_id, sessdata)
+    client.set_danmaku_handler(handler.handle_danmaku)
+
+    async def run():
+        try:
+            await client.start()
+            print("按 Ctrl+C 退出")
+            print("-" * 40)
+            await client.join()
+        except asyncio.CancelledError:
+            pass
+        finally:
+            await client.stop()
+
+    try:
+        asyncio.run(run())
+    except KeyboardInterrupt:
+        print("\n正在退出...")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog='sky-forge',
@@ -130,12 +167,19 @@ def main():
     play_parser.add_argument('song', nargs='?', help='曲目名称或序号')
     play_parser.add_argument('-f', '--file', help='直接指定乐谱文件')
 
+    # live 命令
+    live_parser = subparsers.add_parser('live', help='启动直播间点播模式')
+    live_parser.add_argument('room_id', type=int, help='直播间ID')
+    live_parser.add_argument('--sessdata', '-s', default='', help='B站登录cookie (SESSDATA)')
+
     args = parser.parse_args()
 
     if args.command in ('list', 'ls'):
         cmd_list(args)
     elif args.command == 'play':
         cmd_play(args)
+    elif args.command == 'live':
+        cmd_live(args)
     else:
         parser.print_help()
 
