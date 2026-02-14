@@ -26,6 +26,8 @@ class RequestHandler:
 
     # 点播指令前缀
     REQUEST_PREFIXES = ["点播 ", "播放 ", "点歌 ", "来首 "]
+    # 默认延迟补偿 (秒) - 补偿游戏内乐器响应延迟
+    DEFAULT_DELAY_COMPENSATION = 0.02  # 20ms
 
     def __init__(self, player: Player, sheets_dir: Path):
         """初始化处理器
@@ -40,6 +42,9 @@ class RequestHandler:
         self._lock = threading.Lock()
         self._current_request: Optional[SongRequest] = None
         self._sheets_cache: Optional[list[Path]] = None
+
+        # 设置延迟补偿
+        self.player.delay_compensation = self.DEFAULT_DELAY_COMPENSATION
 
         # 设置播放完成回调
         self.player.set_complete_callback(self._on_play_complete)
@@ -66,6 +71,8 @@ class RequestHandler:
             self._show_queue(msg.uname)
         elif msg.msg.strip() == "跳过":
             self._skip_current(msg.uname)
+        elif msg.msg.strip().startswith("延迟 "):
+            self._adjust_delay(msg.msg.strip(), msg.uname)
 
     def request_song(self, song_name: str, requester: str = ""):
         """点播歌曲
@@ -167,6 +174,25 @@ class RequestHandler:
         if self.player.is_playing:
             self.player.stop()
             print(f"[跳过] {requester} 跳过了当前曲目")
+
+    def _adjust_delay(self, msg: str, requester: str):
+        """调整延迟补偿
+
+        格式: 延迟 +10 或 延迟 -10 (单位: 毫秒)
+        """
+        try:
+            parts = msg.split()
+            if len(parts) != 2:
+                print("[延迟] 格式: 延迟 +10 或 延迟 -10 (毫秒)")
+                return
+
+            delta_ms = int(parts[1])
+            delta_sec = delta_ms / 1000.0
+            self.player.delay_compensation += delta_sec
+
+            print(f"[延迟] {requester} 调整延迟: {delta_ms:+d}ms, 当前: {self.player.delay_compensation*1000:.0f}ms")
+        except ValueError:
+            print("[延迟] 格式错误，示例: 延迟 +10 或 延迟 -10")
 
     @property
     def queue_length(self) -> int:
