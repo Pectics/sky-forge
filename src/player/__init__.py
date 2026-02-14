@@ -1,6 +1,6 @@
-"""Sky-Forge 钢琴演奏模块"""
+"""Sky-Forge 乐谱播放模块"""
 
-from .player import Player
+from .controller import Player
 from .sheet import Sheet
 
 __all__ = ["Player", "Sheet"]
